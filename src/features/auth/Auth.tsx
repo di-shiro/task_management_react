@@ -56,6 +56,7 @@ const Auth = () => {
         value={credential.username}
         onChange={handleInputChange}
       />
+      <br />
       <TextField
         InputLabelProps={{
           shrink: true,

@@ -45,3 +45,51 @@ export interface AUTH_STATE {
   loginUser: LOGIN_USER; // 上にて作成した interface LOGIN_USER を使う。
   profiles: PROFILE[]; // 上にて作成した interface PROFILE の配列構造。ログイン後にサーバから取得した全UserProfileを管理。
 }
+
+/* taskSlice.ts */
+
+// GETでTaskにアクセスした時
+export interface READ_TASK {
+  id: number;
+  task: string;
+  description: string;
+  criteria: string;
+  status: string;
+  status_name: string;
+  category: number;
+  category_item: string;
+  estimate: number;
+  responsible: number;
+  responsible_usernames: string;
+  owner: number;
+  owner_username: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// PostでTaskにアクセスした時
+export interface POST_TASK {
+  id: number;
+  task: string;
+  description: string;
+  criteria: string;
+  status: string;
+  category: number;
+  estimate: number;
+  responsible: number;
+}
+
+// GETのレスポンスと同じデータ型を定義しておく（Django側のCategorySerializerに指定した）
+export interface CATEGORY {
+  id: number;
+  item: string;
+}
+
+// taskStateのReduxの中で使うで使うデータ型
+export interface TASK_STATE {
+  tasks: READ_TASK[];
+  editedTask: POST_TASK; // 編集中のTaskのState
+  selectedTask: READ_TASK; // 選択されたTaskの情報を表示するためのState
+  users: USER[]; // Usersのエンドポイントにアクセスした時のレスポンスを格納
+  category: CATEGORY[]; // 全TaskのCategoryを格納
+}

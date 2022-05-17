@@ -10,7 +10,6 @@ import {
   JWT,
   USER,
 } from "../types";
-import { profile } from "console";
 
 // Login
 export const fetchAsyncLogin = createAsyncThunk(
@@ -108,7 +107,7 @@ export const fetchAsyncUpdateProf = createAsyncThunk(
     // img属性に画像本体と画像の名前を追加する。
     profile.img && uploadData.append("img", profile.img, profile.img.name);
     const res = await axios.put<PROFILE>(
-      `${process.env.REACT_APP_API_URL}/api/profile/${profile.id}`, // Profileを編集するUserのID
+      `${process.env.REACT_APP_API_URL}/api/profile/${profile.id}/`, // Profileを編集するUserのID
       uploadData,
       {
         headers: {

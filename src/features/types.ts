@@ -60,7 +60,7 @@ export interface READ_TASK {
   category_item: string;
   estimate: number;
   responsible: number;
-  responsible_usernames: string;
+  responsible_username: string;
   owner: number;
   owner_username: string;
   created_at: string;

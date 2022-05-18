@@ -93,3 +93,12 @@ export interface TASK_STATE {
   users: USER[]; // Usersのエンドポイントにアクセスした時のレスポンスを格納
   category: CATEGORY[]; // 全TaskのCategoryを格納
 }
+
+/* TaskList.tsx
+    Task一覧表示画面でのTaskのソートに使う
+*/
+export interface SORT_STATE {
+  rows: READ_TASK[] /*      サーバ側からGETで取得した全Taskを配列で保持 */;
+  order: "desc" | "asc" /*  降順、昇順 */;
+  activeKey: string /*      並べ替えるColumnの表題を保持 */;
+}

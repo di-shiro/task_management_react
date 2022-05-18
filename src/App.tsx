@@ -143,7 +143,7 @@ const App: React.FC = () => {
               container
               direction="column" // 画面を縦方向に分割する指定
               alignItems="center"
-              justify="center"
+              justifyContent="center"
               style={{ minHeight: "80vh" }}
             >
               <Grid item>

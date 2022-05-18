@@ -4,6 +4,7 @@ import styles from "./TaskList.module.css";
 import { makeStyles, Theme } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import EditOutlinedIcon from "@material-ui/icons/EditOutlined";
 import {
   Button,
   Avatar,
@@ -49,8 +50,9 @@ const TaskList: React.FC = () => {
   const tasks = useSelector(selectTasks);
   const loginUser = useSelector(selectLoginUser);
   const profiles = useSelector(selectProfiles);
-  const columns = tasks[0] && Object.keys(tasks[0]);
+  const columns = tasks[0] && Object.keys(tasks[0]); // 全Taskの中からどれか1つを選択して、keyをcolumnとする。
 
+  // このTaskListコンポーネントのState
   const [state, setState] = useState<SORT_STATE>({
     rows: tasks,
     order: "desc",
@@ -111,6 +113,8 @@ const TaskList: React.FC = () => {
             {statusName}
           </Badge>
         );
+      default:
+        return null;
     }
   };
 
@@ -122,7 +126,165 @@ const TaskList: React.FC = () => {
     )[0];
     return loginProfile?.img !== null ? loginProfile?.img : undefined;
   };
-  return <div></div>;
+  return (
+    <>
+      <Button
+        className={classes.button}
+        variant="contained"
+        color="primary" /*                    青色 */
+        size="small"
+        startIcon={
+          <AddCircleOutlineIcon />
+        } /* ボタンの中にアイコンを埋め込んでいる */
+        onClick={() => {
+          dispatch(
+            editTask({
+              id: 0,
+              task: "",
+              description: "",
+              criteria: "",
+              responsible: loginUser.id, // Taskの責任者はDefaultでログインUserとしている。
+              status: "1",
+              category: 1,
+              estimate: 0,
+            })
+          );
+          // Taskを編集完了したら、編集用Stateを初期化リセットしておく。
+          dispatch(selectTask(initialState.selectedTask));
+        }}
+      >
+        Add new
+      </Button>
+
+      {tasks[0]?.task && (
+        <Table size="small" className={classes.table}>
+          <TableHead>
+            <TableRow>
+              {
+                // mapで各要素を展開する際にcolIndexに連番を割り振ってくれる。
+                columns.map(
+                  (column, colIndex) =>
+                    // 以下に画面に一覧表示するColumnを指定している。
+                    (column === "task" ||
+                      column === "status" ||
+                      column === "category" ||
+                      column === "estimate" ||
+                      column === "responsible" ||
+                      column === "owner") && (
+                      <TableCell align="center" key={colIndex}>
+                        <TableSortLabel
+                          active={
+                            /* useStateで作成したこのTaskListコンポーネントのStateがactiveKeyなら
+                            降順・昇順の切り替えのアイコンを表示。 */
+                            state.activeKey === column
+                          }
+                          direction={state.order /* 降順・昇順の指定 */}
+                          onClick={
+                            () => handleClickSortColumn(column)
+                            /* Sort関数に並べ替えるcolumnを引数で渡している。 */
+                          }
+                        >
+                          <strong>{column}</strong>
+                        </TableSortLabel>
+                      </TableCell>
+                    )
+                )
+              }
+              <TableCell></TableCell>
+              {/* 編集アイコンを設置するので、レイアウトを整えるために空のTableCellを置く。 */}
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {state.rows.map((row, rowIndex) => (
+              <TableRow hover key={rowIndex}>
+                {
+                  /* rowは1つ1つのTaskのことで、リスト表示の行にあたる。 */
+                  Object.keys(row).map(
+                    (key, colIndex) =>
+                      // 以下の4つのColumnを表示する
+                      (key === "task" ||
+                        key === "status_name" || // この場合、statusの状態に応じて表示が3通りある。別途下に分岐処理を記す。
+                        key === "category_item" ||
+                        key === "estimate") && (
+                        <TableCell
+                          align="center"
+                          className={styles.tasklist__hover}
+                          key={
+                            `${rowIndex}+${colIndex}` /* Tableの縦横に配置されたCellを一意に示すkey */
+                          }
+                          onClick={() => {
+                            // クリックしたCellの該当RowのTaskをTaskFormに表示しつつ、ReduxStateのselectTaskに選択Taskの値を設定する。
+                            dispatch(selectTask(row));
+                            dispatch(editTask(initialState.editedTask)); // 直前に何か編集してたかもしれないのでeditedTaskを初期化しておく
+                          }}
+                        >
+                          {
+                            // status_name の場合はアイコンを表示して、それ以外はシンプルにStateの値を表示する。
+                            key === "status_name" ? (
+                              // status_nameの状態に応じて3通りのアイコンを色分けして表示させるrenderSwitchを実行。
+                              // 引数として渡されるのは、次の3つのいずれか。[Not started, On going, Done]
+                              renderSwitch(row[key])
+                            ) : (
+                              <span>{row[key]}</span>
+                            )
+                          }
+                        </TableCell>
+                      )
+                  )
+                }
+                <TableCell>
+                  <Avatar
+                    className={classes.small}
+                    alt="Responsible"
+                    src={
+                      conditionalSrc(
+                        row["responsible"]
+                      ) /* Task責任者のUserIDを渡し、責任UserのAvatar画像のURLを取得する */
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Avatar
+                    className={classes.small}
+                    alt="Owner"
+                    src={
+                      conditionalSrc(
+                        row["owner"]
+                      ) /* Task作成者のUserIDを渡して、作成UserのAvatar画像のURLを取得する*/
+                    }
+                  />
+                </TableCell>
+
+                <TableCell align="center">
+                  <button
+                    className={styles.tasklist__icon}
+                    onClick={() => dispatch(editTask(row))}
+                    disabled={row["owner"] !== loginUser.id}
+                  >
+                    <DeleteOutlineOutlinedIcon />
+                  </button>
+                  <button
+                    className={styles.tasklist__icon}
+                    onClick={
+                      () => dispatch(editTask(row))
+                      /* 編集したいTaskオブジェクトを引数rowとして渡す */
+                    }
+                    disabled={
+                      row["owner"] !== loginUser.id
+                      /* owner !== loginUser の場合に非表示にする。 */
+                    }
+                  >
+                    <EditOutlinedIcon />
+                  </button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </>
+  );
 };
 
 export default TaskList;

@@ -88,7 +88,7 @@ export const fetchAsyncUpdateTask = createAsyncThunk(
   "task/updateTask",
   async (task: POST_TASK) => {
     const res = await axios.put<READ_TASK>(
-      `${process.env.REACT_APP_API_URL}/api/tasks/${task.id}`,
+      `${process.env.REACT_APP_API_URL}/api/tasks/${task.id}/`,
       task,
       {
         headers: {
@@ -105,16 +105,13 @@ export const fetchAsyncUpdateTask = createAsyncThunk(
 export const fetchAsyncDeleteTask = createAsyncThunk(
   "task/deleteTask",
   async (id: number) => {
-    const res = await axios.delete(
-      `${process.env.REACT_APP_API_URL}/api/tasks/${id}/`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${localStorage.localJWT}`,
-        },
-      }
-    );
-    return res.data;
+    await axios.delete(`${process.env.REACT_APP_API_URL}/api/tasks/${id}/`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${localStorage.localJWT}`,
+      },
+    });
+    return id;
   }
 );
 
@@ -125,15 +122,15 @@ export const initialState: TASK_STATE = {
       task: "",
       description: "",
       criteria: "",
-      status: "",
-      status_name: "",
-      category: 0,
-      category_item: "",
-      estimate: 0,
-      responsible: 0,
-      responsible_username: "",
       owner: 0,
       owner_username: "",
+      responsible: 0,
+      responsible_username: "",
+      estimate: 0,
+      category: 0,
+      category_item: "",
+      status: "",
+      status_name: "",
       created_at: "",
       updated_at: "",
     },
@@ -143,25 +140,25 @@ export const initialState: TASK_STATE = {
     task: "",
     description: "",
     criteria: "",
-    status: "",
-    category: 0,
-    estimate: 0,
     responsible: 0,
+    estimate: 0,
+    category: 0,
+    status: "",
   },
   selectedTask: {
     id: 0,
     task: "",
     description: "",
     criteria: "",
-    status: "",
-    status_name: "",
-    category: 0,
-    category_item: "",
-    estimate: 0,
-    responsible: 0,
-    responsible_username: "",
     owner: 0,
     owner_username: "",
+    responsible: 0,
+    responsible_username: "",
+    estimate: 0,
+    category: 0,
+    category_item: "",
+    status: "",
+    status_name: "",
     created_at: "",
     updated_at: "",
   },
@@ -238,7 +235,6 @@ export const taskSlice = createSlice({
     builder.addCase(fetchAsyncCreateCategory.rejected, () => {
       window.location.href = "/";
     });
-    //
     builder.addCase(
       fetchAsyncCreateTask.fulfilled,
       (state, action: PayloadAction<READ_TASK>) => {

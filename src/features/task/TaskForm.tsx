@@ -26,7 +26,6 @@ import {
 } from "./taskSlice";
 import { AppDispatch } from "../../app/store";
 import { initialState } from "./taskSlice";
-import { SettingsInputComponent } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme: Theme) => ({
   field: {
@@ -75,10 +74,12 @@ const TaskForm: React.FC = () => {
   const category = useSelector(selectCategory);
   const editedTask = useSelector(selectEditedTask);
 
+  /* 新規Category追加モーダルの Open, Close に使う */
   const [open, setOpen] = useState(false);
   const [modalStyle] = useState(getModalStyle);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState(""); //新規Category追加の際、Category名の入力に使う。
 
+  /* 新規Category追加モーダルの Open, Close に使う */
   const handleOpen = () => {
     setOpen(true);
   };
@@ -93,8 +94,11 @@ const TaskForm: React.FC = () => {
   const isCatDisabled = inputText.length === 0;
 
   const handleInputTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputText(e.target.value);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Columnの「estimate（作業日数）」は変数型を文字列から数値に変換しておく。
-    //
     let value: string | number = e.target.value;
     const name = e.target.name;
     if (name === "estimate") {
@@ -139,7 +143,186 @@ const TaskForm: React.FC = () => {
     </MenuItem>
   ));
 
-  return <div></div>;
+  return (
+    <div>
+      <h2>
+        {
+          editedTask.id ? "Update Task" : "New Task"
+          // TaskListコンポーネントで何かTaskを選択すると、editedTask に選択TaskのStateが格納される。
+          // そのためeditedTask.id に何かあればTrue、なければFalse（New Task）になる。
+        }
+      </h2>
+      <form>
+        {/* Estimate */}
+        <TextField
+          className={classes.field}
+          label="Estimate [days]"
+          type="number"
+          name="estimate"
+          InputProps={{ inputProps: { min: 0, max: 1000 } }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          value={editedTask.estimate}
+          onChange={handleInputChange}
+        />
+
+        <TextField
+          className={classes.field}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          label="Task"
+          type="text"
+          name="task"
+          value={editedTask.task}
+          onChange={handleInputChange}
+        />
+
+        <br />
+        {/* Description */}
+        <TextField
+          className={classes.field}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          label="Description"
+          type="text"
+          name="description"
+          value={editedTask.description}
+          onChange={handleInputChange}
+        />
+
+        {/* Criteria */}
+        <TextField
+          className={classes.field}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          label="Criteria"
+          type="text"
+          name="criteria"
+          value={editedTask.criteria}
+          onChange={handleInputChange}
+        />
+
+        <br />
+        <FormControl className={classes.field}>
+          <InputLabel>Responsible</InputLabel>
+          <Select
+            name="responsible"
+            onChange={handleSelectRespChange}
+            value={editedTask.responsible}
+          >
+            {
+              userOptions
+              /* selectorの中に選択リストを表示するためのMenuItemを埋め込む */
+            }
+          </Select>
+        </FormControl>
+
+        <FormControl className={classes.field}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            name="status"
+            value={editedTask.status}
+            onChange={handleSelectStatusChange}
+          >
+            <MenuItem value={1}>Not started</MenuItem>
+            <MenuItem value={2}>On going</MenuItem>
+            <MenuItem value={3}>Done</MenuItem>
+          </Select>
+        </FormControl>
+
+        <br />
+        <FormControl className={classes.field}>
+          <InputLabel>Category</InputLabel>
+          <Select
+            name="category"
+            value={editedTask.category}
+            onChange={handleSelectCatChange}
+          >
+            {catOptions}
+          </Select>
+        </FormControl>
+
+        {/* 新規Category追加ボタン（アイコン） */}
+        <Fab
+          size="small"
+          color="primary"
+          onClick={handleOpen}
+          className={classes.addIcon}
+        >
+          <AddIcon />
+        </Fab>
+
+        {/* 新規Category追加モーダル */}
+        <Modal open={open} onClose={handleClose}>
+          <div style={modalStyle} className={classes.paper}>
+            <TextField
+              className={classes.field}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              label="New category"
+              type="text"
+              value={inputText}
+              onChange={handleInputTextChange}
+            />
+
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              className={classes.saveModal}
+              startIcon={<SaveIcon />}
+              disabled={isCatDisabled}
+              onClick={() => {
+                dispatch(fetchAsyncCreateCategory(inputText));
+                handleClose();
+              }}
+            >
+              SAVE
+            </Button>
+          </div>
+        </Modal>
+
+        <br />
+        {/* Saveボタン */}
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          className={classes.button}
+          startIcon={<SaveIcon />}
+          disabled={isDisabled}
+          onClick={
+            /* editedTaskのStateが初期値でない時（IDが 0 以外のStateの時）は既存Task編集のUpdateを行う。
+            Stateが初期値の時（IDが初期値の 0 の時）は、新規Task作成のCreateTaskを行う */
+            editedTask.id !== 0
+              ? () => dispatch(fetchAsyncUpdateTask(editedTask))
+              : () => dispatch(fetchAsyncCreateTask(editedTask))
+          }
+        >
+          {editedTask.id !== 0 ? "Update" : "Save"}
+        </Button>
+
+        {/* Cancelボタン */}
+        <Button
+          variant="contained"
+          color="default"
+          size="small"
+          onClick={() => {
+            /* Stateを初期化することで、Task編集画面を閉じる */
+            dispatch(editTask(initialState.editedTask));
+            dispatch(selectTask(initialState.selectedTask));
+          }}
+        >
+          Cancel
+        </Button>
+      </form>
+    </div>
+  );
 };
 
 export default TaskForm;

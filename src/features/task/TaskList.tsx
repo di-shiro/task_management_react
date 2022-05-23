@@ -233,7 +233,7 @@ const TaskList: React.FC = () => {
                       )
                   )
                 }
-                <TableCell>
+                <TableCell align="center">
                   <Avatar
                     className={classes.small}
                     alt="Responsible"
@@ -243,8 +243,9 @@ const TaskList: React.FC = () => {
                       ) /* Task責任者のUserIDを渡し、責任UserのAvatar画像のURLを取得する */
                     }
                   />
+                  {row["responsible_username"]}
                 </TableCell>
-                <TableCell>
+                <TableCell align="center">
                   <Avatar
                     className={classes.small}
                     alt="Owner"
@@ -254,6 +255,7 @@ const TaskList: React.FC = () => {
                       ) /* Task作成者のUserIDを渡して、作成UserのAvatar画像のURLを取得する*/
                     }
                   />
+                  {row["owner_username"]}
                 </TableCell>
 
                 <TableCell align="center">
